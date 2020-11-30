@@ -1,85 +1,150 @@
-<h1 align="center">
-  <br>
-  <img src="nbt_demo.gif">
-</h1>
+<h1 align="center">Node Binance Trader NBT</h1>
 
-<h4 align="center">Node-Binance-Trader</h4>
+<h6 align="center">Version 0.2.4</h6>
 
-<p align="center">
-  <a href="https://discord.gg/4EQrEgj"><img alt="Discord chat" src="Discord_button.png" /></a>
-</p>
+[![Donate NIM](https://www.nimiq.com/accept-donations/img/donationBtnImg/light-blue-small.svg)](https://wallet.nimiq.com/nimiq:NQ38SDPGREC3USTALLCT87GQTCUYFH5L6PCQ)
 
-<h4 align="center">An efficient cryptocurrency trading bot command line framework for Binance using Node.js</h4>
+<img src="nbt_diagram.png">
 
-<p align="center">
-  <img alt="Discord chat" src="Screenshot.png" />
-  Screenshot of my trading setup: the Binance Desktop app plus NBT on a floating iTerm2 console.
-</p>
+<h4 align="center">NBT is an open cryptocurrency trading bot development framework for the Binance exchange.</h4>
 
-<h4 align="center">
-🙏  If you’re feeling generous or simply want show your support 🙏 <br>
- you can buy me a 🍻  by sending me a quick <a href="https://www.paypal.me/jsappme">PayPal</a> payment.
-</h4>
+NBT includes 3 main JS scripts:
 
-# Time to upgrade your crypto trading 🤔
+* the **server**:
 
-My name is Herve Fulchiron, I’m a passionate full stack JS engineer and a cryptocurrency enthusiast/trader. I mostly use <a href="https://www.binance.com/?ref=10177791" target="_blank">Binance</a> for my cryptocurrency trading. Like most of the people I used to trade manually via the Binance website. I was slow to execute and beating the market gets more difficult every days.  It was time to upgrade my trading execution. Console apps run on the Terminal (or Command Prompt), and they provide an easy and efficient way to execute difficult tasks like **low latency cryptocurrency trading**. The minimalism of the graphical interface give them an edge on the speed of execution vs. manual retail trading.
+  * to track a selection of asset pairs and record all binance api data (candles, depths, trades) into a Postgres database.
+  * to detect buy or sell signals
+  * (optional) to send trading signals to the NBT Hub / [Bitcoin vs. Altcoins](https://bitcoinvsaltcoins.com) to monitor performances and auto trade those signals (virtually or for real).
 
-Here is the article that comes with this repository: <a href="https://jsapp.me/how-to-build-an-efficient-trading-bot-for-binance-using-node-js-43d5fd174f8b" target="_blank">How to build an efficient trading bot for Binance using Node.js</a>
+* the **trader**: [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/jsappme/nbt-binance-auto-trader)
 
-# What is Node-Binance-Trader? 📡
+  * this script allows you to auto trade the signals received from the NBT hub or your own server. this script can run locally or on cloud services like Heroku. This new auto trader script allows you to trade with leverage when the pair is available for margin trading.
 
-Today NBT is a trading bot console app that will:
+* the **backtest** :
 
-* ask which currency you want to use to buy the wanted currency
-* ask for the budget for the trade
-* ask which currency you want to buy
-* ask for buying method: market price, bid price or fixed buy price
-* ask for selling method: trailing stop loss or maximum loss n profit percentages.
-* automatically auto trade the whole operation as fast and efficient as possible.
-* stop the trade and sell everything at the current market price if the user pressed q or CTRL+c.
+  * to backtest your strategies on the historical tick data (Postgres database) recorded by the server.
 
 # Requirements
 
-* A Binance Account with some BNB available to pay for the trading fees.
-* [Git](https://git-scm.com/download/)
-* [Node.JS v8 min.](http://nodejs.org)
+* [Git](https://git-scm.com/download/) (see if it is already installed with the command: *git --version*)
+* [Node.JS](http://nodejs.org) (see if it is already installed with the command: *npm --version*)
 
 # Installation 📦
 
 ```
 git clone https://github.com/jsappme/node-binance-trader
 cd node-binance-trader
-npm i
-npm i -g
+npm i --unsafe-perm
 ```
-
-# Configuration 🛠️
-
-1. Signup Binance ( Referral url: https://www.binance.com/?ref=10177791 )
-2. Enable Two-factor Authentication    
-3. Go API Center, https://www.binance.com/userCenter/createApi.html
-4. Create New Key
-        [✓] Read Info [✓] Enable Trading [X] Enable Withdrawals
-5. Copy the API key and secret to index.js
 
 # Usage ⚡️
 
-```
-node index.js
-```
-or simply:
+Before everything please review the source code of the JS scripts (server.js, trader.js) and add your key information (BvA, Binance, etc...)
 
+**To start the server** to save pair data, define strategies and emit trading signals:
 ```
-nbt
+npm run start
 ```
 
-# Roadmap 🚧
+**To start the auto trader** to monitor strategies and signals received from the server or the NBT Hub:
 
-* ✔️  Stop Loss + Take Profit Trading Execution
-* ✔️  Trailing Stop Loss
-* Add TA signals
-* Add AI/ML "brain" signals and risk mgmt
+<i>Important note: Always make sure to have some BNB available on your corresponding wallet to pay for the fees.</i>
+
+```
+npm run trader
+```
+
+**To backtest** strategies using the data recorded by the server:
+```
+npm run bt
+```
+
+# Web Socket API specifications 📡
+
+Feel free to connect your Node.js scripts to the NBT hub Websocket server to monitor the performance of your signals and strategies on [BvA](https://bitcoinvsaltcoins.com)
+
+***From your NBT Server, you can:***
+
+**Send a Buy Signal** to the NBT hub:
+```
+const buy_signal = {
+    key: bva_key,
+    stratname: stratname,
+    pair: pair, 
+    buy_price: first_ask_price[pair], //optional
+    message: Date.now(), //optional
+    stop_profit: Number(stop_profit[pair+signal_key]), //optional
+    stop_loss: Number(stop_loss[pair+signal_key]), //optional
+}
+socket_client.emit("buy_signal", buy_signal)
+```
+
+**Send a Sell Signal** to the NBT hub:
+```
+const sell_signal = {
+    key: bva_key,
+    stratname: stratname, 
+    pair: pair, 
+    sell_price: first_bid_price[pair] //optional
+}
+socket_client.emit("sell_signal", sell_signal)
+```
+
+You can also communicate via the NBT hub to your auto trader to track your traded signals.
+
+***From your NBT Trader, you can:***
+
+**Receive a Buy Signal** from the NBT hub, to trade a signal from a strategy selected on BvA.
+```
+socket.on('buy_signal', async (signal) => {
+    console.log(signal.userid)
+    console.log(signal.nickname)
+    console.log(signal.stratid)
+    console.log(signal.stratname)
+    console.log(signal.pair)
+    console.log(signal.price) // buy price
+    console.log(signal.new)  //new signal or closing an existing signal
+})
+```
+
+**Receive a Sell Signal** from the NBT hub, to trade a signal from a strategy selected on BvA.
+```
+socket.on('sell_signal', async (signal) => {
+    console.log(signal.userid)
+    console.log(signal.nickname)
+    console.log(signal.stratid)
+    console.log(signal.stratname)
+    console.log(signal.pair)
+    console.log(signal.price) // buy price
+    console.log(signal.new)  //new signal or closing an existing signal
+})
+```
+
+**Send a Traded Buy Signal** to the NBT hub:
+```
+const traded_buy_signal = {
+    key: bva_key,
+    stratname: signal.stratname,
+    stratid: signal.stratid,
+    trading_type: user_payload[tresult].trading_type,
+    pair: signal.pair, 
+    qty: Number(user_payload[tresult].buy_amount)
+}
+socket.emit("traded_buy_signal", traded_buy_signal)
+```
+
+**Send a Traded Sell Signal** to the NBT hub:
+```
+const traded_sell_signal = {
+    key: bva_key,
+    stratname: signal.stratname,
+    stratid: signal.stratid,
+    trading_type: user_payload[tresult].trading_type,
+    pair: signal.pair, 
+    qty: Number(user_payload[tresult].buy_amount),
+}
+socket.emit("traded_sell_signal", traded_sell_signal)
+```
 
 
 # Disclaimer 📖
@@ -101,3 +166,7 @@ If this repo helped you in any way, you can always leave me a BNB tip at 0xf0c49
 # GETTING IN TOUCH 💬
 
 * **Discord**: [Invite Link](https://discord.gg/4EQrEgj)
+
+<p align="center">
+  <a href="https://discord.gg/4EQrEgj"><img alt="Discord chat" src="Discord_button.png" /></a>
+</p>
