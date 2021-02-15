@@ -4,7 +4,7 @@
 
 [![Donate NIM](https://www.nimiq.com/accept-donations/img/donationBtnImg/light-blue-small.svg)](https://wallet.nimiq.com/nimiq:NQ38SDPGREC3USTALLCT87GQTCUYFH5L6PCQ)
 
-<img src="nbt_diagram.png">
+<img src="docs/images/nbt_diagram.png">
 
 <h4 align="center">NBT is an open cryptocurrency trading bot development framework for the Binance exchange.</h4>
 
@@ -39,11 +39,24 @@ npm i --unsafe-perm
 
 # Usage ⚡️
 
-Before everything please review the source code of the JS scripts (server.js, trader.js) and add your key information (BvA, Binance, etc...)
+Before everything, please review the source code of the JS scripts (server.js, trader.js) and then add your secret data to `.env`.
+
+To kickstart, just duplicate the `.env.example`, name it  `.env` and insert your secret values:
+```bash
+cp .env.example .env
+$EDITOR .env
+```
+**Never check in your `.env` file!**
+It contains your most private information.
+
+**This project can be used as a Docker container!** Use the `docker run` commands below, after building the container:
+`docker build -t jsappme/node-binance-trader .`
 
 **To start the server** to save pair data, define strategies and emit trading signals:
 ```
 npm run start
+// or
+docker run -d --name node-binance-trader -v "$PWD/.env:/srv/app/.env" -p 4000:4000 jsappme/node-binance-trader npm run start
 ```
 
 **To start the auto trader** to monitor strategies and signals received from the server or the NBT Hub:
@@ -52,11 +65,15 @@ npm run start
 
 ```
 npm run trader
+// or
+docker run -d --name node-binance-trader -v "$PWD/.env:/srv/app/.env" jsappme/node-binance-trader npm run trader
 ```
 
 **To backtest** strategies using the data recorded by the server:
 ```
-npm run bt
+npm run backtest
+// or
+docker run -d --name node-binance-trader -v "$PWD/.env:/srv/app/.env" jsappme/node-binance-trader npm run backtest
 ```
 
 # Web Socket API specifications 📡
@@ -70,7 +87,7 @@ Feel free to connect your Node.js scripts to the NBT hub Websocket server to mon
 const buy_signal = {
     key: bva_key,
     stratname: stratname,
-    pair: pair, 
+    pair: pair,
     buy_price: first_ask_price[pair], //optional
     message: Date.now(), //optional
     stop_profit: Number(stop_profit[pair+signal_key]), //optional
@@ -83,8 +100,8 @@ socket_client.emit("buy_signal", buy_signal)
 ```
 const sell_signal = {
     key: bva_key,
-    stratname: stratname, 
-    pair: pair, 
+    stratname: stratname,
+    pair: pair,
     sell_price: first_bid_price[pair] //optional
 }
 socket_client.emit("sell_signal", sell_signal)
@@ -127,7 +144,7 @@ const traded_buy_signal = {
     stratname: signal.stratname,
     stratid: signal.stratid,
     trading_type: user_payload[tresult].trading_type,
-    pair: signal.pair, 
+    pair: signal.pair,
     qty: Number(user_payload[tresult].buy_amount)
 }
 socket.emit("traded_buy_signal", traded_buy_signal)
@@ -140,7 +157,7 @@ const traded_sell_signal = {
     stratname: signal.stratname,
     stratid: signal.stratid,
     trading_type: user_payload[tresult].trading_type,
-    pair: signal.pair, 
+    pair: signal.pair,
     qty: Number(user_payload[tresult].buy_amount),
 }
 socket.emit("traded_sell_signal", traded_sell_signal)
@@ -168,5 +185,5 @@ If this repo helped you in any way, you can always leave me a BNB tip at 0xf0c49
 * **Discord**: [Invite Link](https://discord.gg/4EQrEgj)
 
 <p align="center">
-  <a href="https://discord.gg/4EQrEgj"><img alt="Discord chat" src="Discord_button.png" /></a>
+  <a href="https://discord.gg/4EQrEgj"><img alt="Discord chat" src="docs/images/discord_button.png" /></a>
 </p>
